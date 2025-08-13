@@ -1,47 +1,46 @@
-import React from "react";
-import { StyleSheet, SafeAreaView, Text } from "react-native";
+import React, { useState, useEffect } from "react";
+import { SafeAreaView, Text, TextInput, Button, FlatList } from "react-native";
 
-export default class App extends React.Component {
-  render() {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.h1}>Hello CodeSandbox</Text>
-        <Text style={styles.h2}>
-          Start editing to see some magic happen, even on your mobile device!
-        </Text>
-        <br />
-        <br />
-        <Text style={styles.paragraph}>
-          Open Expo on your mobile device with scanning the QR code in the
-          application log under the start tab.
-        </Text>
-      </SafeAreaView>
-    );
-  }
+export default function App() {
+  const [task, setTask] = useState("");
+  const [todos, setTodos] = useState([]);
+
+  // Load todos from server
+  const loadTodos = async () => {
+    const res = await fetch("http://10.245.94.253:3000/todos"); // change to your PC's IP
+    const data = await res.json();
+    setTodos(data);
+  };
+
+  // Add new task
+  const addTodo = async () => {
+    await fetch("http://10.245.94.253:3000/todos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task }),
+    });
+    setTask("");
+    loadTodos();
+  };
+
+  useEffect(() => {
+    loadTodos();
+  }, []);
+
+  return (
+    <SafeAreaView style={{ padding: 20 }}>
+      <TextInput
+        placeholder="Enter task"
+        value={task}
+        onChangeText={setTask}
+        style={{ borderWidth: 1, marginBottom: 10, padding: 5 }}
+      />
+      <Button title="Add Task" onPress={addTodo} />
+      <FlatList
+        data={todos}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => <Text>- {item.task}</Text>}
+      />
+    </SafeAreaView>
+  );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    backgroundColor: "#ecf0f1",
-    padding: 8,
-  },
-  paragraph: {
-    margin: 8,
-    fontSize: 16,
-    textAlign: "center",
-  },
-  h1: {
-    margin: 28,
-    fontSize: 36,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  h2: {
-    margin: 16,
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-});
