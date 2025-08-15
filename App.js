@@ -1,44 +1,36 @@
 import React, { useState, useEffect } from "react";
 import { SafeAreaView, Text, TextInput, Button, FlatList, View } from "react-native";
 
-// Vercel API endpoint
-const API_URL = "https://expo-todo-nine.vercel.app/api/todos";
-
 export default function App() {
   const [task, setTask] = useState("");
   const [todos, setTodos] = useState([]);
 
-  // Fetch todos from server
-  const fetchTodos = async () => {
-    try {
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      setTodos(data);
-    } catch (error) {
-      console.error("Error fetching todos:", error);
-    }
-  };
+  const API_URL = "https://expo-todo-nine.vercel.app/api/todos";
+
+  // Fetch todos when app loads
+  useEffect(() => {
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => setTodos(data))
+      .catch(err => console.error("Error fetching todos:", err));
+  }, []);
 
   // Add new task to server
-  const addTodo = async () => {
+  const addTodo = () => {
     if (task.trim() === "") return;
-    try {
-      await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task }),
-      });
-      setTask("");
-      fetchTodos(); // Refresh after adding
-    } catch (error) {
-      console.error("Error adding todo:", error);
-    }
-  };
 
-  // Load todos on app start
-  useEffect(() => {
-    fetchTodos();
-  }, []);
+    fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setTodos(data.todos); // Update list with server data
+        setTask("");
+      })
+      .catch(err => console.error("Error adding todo:", err));
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
@@ -54,7 +46,7 @@ export default function App() {
           marginBottom: 10,
           padding: 8,
           width: "80%",
-          borderRadius: 5,
+          borderRadius: 5
         }}
       />
 
